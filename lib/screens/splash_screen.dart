@@ -1,6 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:illicit_illustrations_2/screens/home_screen.dart';
+import 'package:get/get_core/src/get_main.dart';
+import 'package:get/get_navigation/src/extension_navigation.dart';
+import 'package:get/get_navigation/src/routes/transitions_type.dart';
+import 'package:illicit_illustrations/screens/home_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -13,12 +16,13 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    Timer(const Duration(seconds: 2, ), () {
-      Navigator.pushReplacement(
+    Timer(const Duration(seconds: 1, milliseconds: 500 ), () {
+      Get.to(const HomeScreen(),transition: Transition.circularReveal,duration: Duration(seconds: 3));
+     /* Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (context) => HomeScreen(),
-          ));
+          ));*/
     });
   }
 

@@ -1,4 +1,4 @@
-# illicit_illustrations_2
+# illicit_illustrations
 
 A new Flutter project.
 

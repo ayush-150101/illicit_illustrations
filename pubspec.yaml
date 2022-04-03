@@ -1,4 +1,4 @@
-name: illicit_illustrations_2
+name: illicit_illustrations
 description: A new Flutter project.
 
 # The following line prevents the package from being accidentally published to
@@ -30,17 +30,21 @@ dependencies:
   flutter:
     sdk: flutter
   image_picker:
-  tflite:
   path_provider: ^2.0.8
   image_gallery_saver:
   share:
   image:
   scroll_snap_list:
-  flutter_native_splash:
+  get:
+  get_storage:
+  tflite_flutter:
+  flutter_native_image:
+  tflite:
+  camera:
+  image_editor:
+  flutter_glow:
   flutter_image_compress:
-  fluttertoast:
-  crop_your_image:
-  on_image_matrix:
+
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -74,13 +78,7 @@ flutter:
   #   - images/a_dot_ham.jpeg
   assets:
     - assets/
-
-flutter_native_splash:
-  color: "#000000"
-  image: assets/splash_logo.png
-
-
-
+    - assets/models/
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
 

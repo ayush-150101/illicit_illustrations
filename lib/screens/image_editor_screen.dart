@@ -1,12 +1,13 @@
-import 'dart:typed_data';
 import 'dart:io';
-
+import 'package:get/get.dart';
 import 'package:flutter/material.dart';
-import 'package:illicit_illustrations_2/models/image_processor.dart';
-import 'package:illicit_illustrations_2/utilities/util.dart';
+import 'package:illicit_illustrations/controllers/image_controller.dart';
+import 'package:illicit_illustrations/screens/home_screen.dart';
+import 'package:illicit_illustrations/utilities/util.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:scroll_snap_list/scroll_snap_list.dart';
-import 'package:share/share.dart';
+import 'package:flutter_glow/flutter_glow.dart';
+
 
 class ImageEditor extends StatefulWidget {
   /// variable to store File parameter passed from HomeScreen
@@ -19,37 +20,32 @@ class ImageEditor extends StatefulWidget {
 
 class _ImageEditorState extends State<ImageEditor> {
   /// variable to change state of page once image has finished processing
-  bool imageProcessed = false;
+  bool imageProcessed = true;
 
   /// variable to store state of show more options
   bool showMoreOptions = false;
 
-  /// variable to store processed image returned by processImage function
-  late Uint8List _output;
-
   /// variable to store focused index of ScrollSnapList widget
   int _focusedIndex = 0;
-
-  int current = 0;
 
   /// scroll controller for ScrollSnapList widget
   ScrollController? _controller;
 
   /// List of assets for artistic style
-  List<String> assets = ["", "assets/van_gogh_face.jpg","assets/ukiyoe.jpg"];
+  List<String> assets = [
+    "",
+  ];
+
+  void getAssets() {
+    for (int i = 0; i < 29; i++) {
+      assets.add("assets/style$i.jpg");
+    }
+  }
 
   /// Function to toggle more options view
   void toggleOptions() async {
     setState(() {
       showMoreOptions = !showMoreOptions;
-    });
-  }
-
-  /// Function to call processImage function of class Image Processor and return precessed image in Uint8List format
-  void initialise() async {
-    _output = await ImageProcessor.processImage(widget.image);
-    setState(() {
-      imageProcessed = true;
     });
   }
 
@@ -61,25 +57,32 @@ class _ImageEditorState extends State<ImageEditor> {
 
       /// Widget to shrink widget to 60% of original size when in unfocused position
       child: Transform.scale(
-        scale: current == index ? 1 : 0.6,
+        scale: _focusedIndex == index ? 1 : 0.75,
         child: Container(
             height: 80,
             width: 80,
             decoration: const BoxDecoration(
-                shape: BoxShape.circle, color: Colors.white),
+                shape: BoxShape.circle, gradient: LinearGradient(
+              begin: Alignment.topRight,
+              end: Alignment.bottomLeft,
+              colors: [
+                Colors.purple,
+                Colors.pink,
+              ],
+            ),),
             child: assets[index] == ""
                 ?
 
                 /// Widget for the initial or no-filter option
                 Padding(
-                    padding: current == index
+                    padding: _focusedIndex == index
                         ? const EdgeInsets.all(5.0)
                         : const EdgeInsets.all(0.0),
                     child: Container(
                       decoration: const BoxDecoration(
                           shape: BoxShape.circle, color: Colors.black),
                       child: Padding(
-                        padding: current == index
+                        padding: _focusedIndex == index
                             ? const EdgeInsets.all(6.0)
                             : const EdgeInsets.all(0.0),
                         child: Container(
@@ -93,7 +96,7 @@ class _ImageEditorState extends State<ImageEditor> {
 
                 /// Widget for the other filters
                 Padding(
-                    padding: current == index
+                    padding: _focusedIndex == index
                         ? const EdgeInsets.all(5.0)
                         : const EdgeInsets.all(0.0),
                     child: CircleAvatar(
@@ -107,215 +110,247 @@ class _ImageEditorState extends State<ImageEditor> {
     );
   }
 
-  /// initState to trigger initialise function
   @override
   void initState() {
     super.initState();
-    initialise();
+    getAssets();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          Padding(
-            padding: EdgeInsets.fromLTRB(
-                0, MediaQuery.of(context).size.height * 0.1, 0, 0),
-            child: imageProcessed
-                ? Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Positioned(
-                        bottom: MediaQuery.of(context).size.height * 0.15,
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(0, 30, 0, 0),
-                          child: GestureDetector(
-                            child: SizedBox(
-                              height: MediaQuery.of(context).size.height * 0.75,
-                              width: MediaQuery.of(context).size.width * 0.95,
-                              child: Stack(
-                                children: [
-                                  SizedBox(
-                                    height: MediaQuery.of(context).size.height *
-                                        0.75,
-                                    width: MediaQuery.of(context).size.width *
-                                        0.95,
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(40),
-                                      child: _focusedIndex == 1
-                                          ?
+    final imageController = Get.put(ImageController(content: widget.image));
+    return GetX<ImageController>(builder: (controller) {
+      //controller.onInit();
+        return WillPopScope(
+          onWillPop: () async{ Get.delete<ImageController>();Get.back();return true;},
+          child: Scaffold(
+            backgroundColor: Colors.black,
+            body: Stack(children: [
+                Stack(
+                  children: [
+                    Padding(
+                        padding: EdgeInsets.fromLTRB(
+                            0, MediaQuery.of(context).size.height * 0.1, 0, 0),
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Positioned(
+                              bottom: MediaQuery.of(context).size.height * 0.28,
+                              child: Padding(
+                                padding: const EdgeInsets.fromLTRB(0, 30, 0, 0),
+                                child: SizedBox(
+                                  height: MediaQuery.of(context).size.height * 0.6,
+                                  width: MediaQuery.of(context).size.width * 0.95,
+                                  child: controller.imageProcessed.value
+                                      ? Stack(
+                                          children: [
+                                            SizedBox(
+                                              height: MediaQuery.of(context)
+                                                      .size
+                                                      .height *
+                                                  0.75,
+                                              width: MediaQuery.of(context)
+                                                      .size
+                                                      .width *
+                                                  0.95,
+                                              child: ClipRRect(
+                                                  borderRadius:
+                                                      BorderRadius.circular(40),
+                                                  child:
 
-                                          /// Displaying image returned by tflite model
-                                          Image.memory(
-                                              _output,
-                                              fit: BoxFit.fill,
-                                            )
-                                          :
-
-                                          /// Displaying initial image
-                                          Image.file(
-                                              widget.image,
-                                              fit: BoxFit.fill,
+                                                      /// Displaying image returned by tflite model
+                                                      Image.memory(
+                                                    controller.image,
+                                                    fit: BoxFit.fill,
+                                                  )),
                                             ),
-                                    ),
-                                  ),
 
-                                  /// Widget to toggle more options screen on top of the image
-                                  InkWell(
-                                    onTap: () => toggleOptions(),
-                                    child: Container(
-                                      height:
-                                          MediaQuery.of(context).size.height *
-                                              0.75,
-                                      width: MediaQuery.of(context).size.width *
-                                          0.95,
-                                      color: showMoreOptions
-                                          ? Colors.black.withOpacity(0.6)
-                                          : Colors.transparent,
-                                      child: showMoreOptions
-                                          ? Center(
-                                              child: Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceEvenly,
-                                                children: [
-                                                  /// Widget for save image icon
-                                                  InkWell(
-                                                    onTap: () async {
-                                                      _focusedIndex == 1
-                                                          ?
+                                            /// Widget to toggle more options screen on top of the image
+                                            InkWell(
+                                              onTap: () => toggleOptions(),
+                                              child: Container(
+                                                height: MediaQuery.of(context)
+                                                        .size
+                                                        .height *
+                                                    0.75,
+                                                width: MediaQuery.of(context)
+                                                        .size
+                                                        .width *
+                                                    0.95,
+                                                color: showMoreOptions
+                                                    ? Colors.black.withOpacity(0.6)
+                                                    : Colors.transparent,
+                                                child: showMoreOptions
+                                                    ? Center(
+                                                        child: Row(
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .spaceEvenly,
+                                                          children: [
+                                                            /// Widget for save image icon
+                                                            InkWell(
+                                                              onTap: () async {
+                                                                /// function to save processed image to gallery
+                                                                ImageGallerySaver
+                                                                    .saveImage(
+                                                                        controller
+                                                                            .image,
+                                                                        quality:
+                                                                            100);
 
-                                                          /// function to save initial image to gallery
-                                                          ImageGallerySaver
-                                                              .saveFile(widget
-                                                                  .image.path)
-                                                          :
+                                                                ScaffoldMessenger
+                                                                        .of(context)
+                                                                    .showSnackBar(
+                                                                        const SnackBar(
+                                                                  content: Text(
+                                                                      'Image Saved To Gallery'),
+                                                                  duration:
+                                                                      Duration(
+                                                                          seconds:
+                                                                              1),
+                                                                ));
+                                                              },
+                                                              child: Container(
+                                                                height: 60,
+                                                                width: 60,
+                                                                decoration: BoxDecoration(
+                                                                    shape: BoxShape
+                                                                        .circle,
+                                                                    color: Colors
+                                                                        .black
+                                                                        .withOpacity(
+                                                                            0.6)),
+                                                                child: const Icon(
+                                                                  Icons.save_alt,
+                                                                  color:
+                                                                      Colors.white,
+                                                                  size: 40,
+                                                                ),
+                                                              ),
+                                                            ),
+                                                            const SizedBox(
+                                                              width: 5,
+                                                            ),
 
-                                                          /// function to save processed image to gallery
-                                                          ImageGallerySaver
-                                                              .saveImage(
-                                                                  _output,
-                                                                  quality: 100);
-
-                                                      ScaffoldMessenger.of(
-                                                              context)
-                                                          .showSnackBar(
-                                                              const SnackBar(
-                                                        content: Text(
-                                                            'Image Saved To Gallery'),
-                                                        duration: Duration(
-                                                            seconds: 1),
-                                                      ));
-                                                    },
-                                                    child: Container(
-                                                      height: 60,
-                                                      width: 60,
-                                                      decoration: BoxDecoration(
-                                                          shape:
-                                                              BoxShape.circle,
-                                                          color: Colors.black
-                                                              .withOpacity(
-                                                                  0.6)),
-                                                      child: const Icon(
-                                                        Icons.save_alt,
-                                                        color: Colors.white,
-                                                        size: 40,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  const SizedBox(
-                                                    width: 5,
-                                                  ),
-
-                                                  /// Widget for share image icon
-                                                  InkWell(
-                                                    onTap: () async {
-                                                      print("log" +
-                                                          widget.image.path);
-                                                      _focusedIndex == 0
-                                                          ?
-
-                                                          /// function to share initial image
-                                                          Share.shareFiles([
-                                                              widget.image.path
-                                                            ])
-                                                          :
-
-                                                          /// function to share processed image
-                                                          Utilities.shareImage(
-                                                              _output);
-                                                    },
-                                                    child: Container(
-                                                      height: 60,
-                                                      width: 60,
-                                                      decoration: BoxDecoration(
-                                                          shape:
-                                                              BoxShape.circle,
-                                                          color: Colors.black
-                                                              .withOpacity(
-                                                                  0.6)),
-                                                      child: const Icon(
-                                                        Icons.share,
-                                                        color: Colors.white,
-                                                        size: 40,
-                                                      ),
-                                                    ),
-                                                  )
-                                                ],
+                                                            /// Widget for share image icon
+                                                            InkWell(
+                                                              onTap: () async {
+                                                                /// function to share processed image
+                                                                Utilities
+                                                                    .shareImage(
+                                                                        controller
+                                                                            .image);
+                                                              },
+                                                              child: Container(
+                                                                height: 60,
+                                                                width: 60,
+                                                                decoration: BoxDecoration(
+                                                                    shape: BoxShape
+                                                                        .circle,
+                                                                    color: Colors
+                                                                        .black
+                                                                        .withOpacity(
+                                                                            0.6)),
+                                                                child: const Icon(
+                                                                  Icons.share,
+                                                                  color:
+                                                                      Colors.white,
+                                                                  size: 40,
+                                                                ),
+                                                              ),
+                                                            )
+                                                          ],
+                                                        ),
+                                                      )
+                                                    : Container(),
                                               ),
-                                            )
-                                          : Container(),
-                                    ),
-                                  ),
-                                ],
+                                            ),
+                                          ],
+                                        )
+                                      : const Center(
+                                          child: CircularProgressIndicator(),
+                                        ),
+                                ),
                               ),
                             ),
-                          ),
-                        ),
-                      ),
-                      Align(
-                        alignment: Alignment.bottomCenter,
-                        child: SizedBox(
-                          height: 80,
-                          //width: 200,
-                          child: ScrollSnapList(
-                            listController: _controller,
-                            onItemFocus: (pos) {
-                              if (pos == 1) {
-                                Utilities.showToast("VAN GOGH IMAGE");
-                              } else {
-                                Utilities.showToast("NORMAL IMAGE");
-                              }
-                              setState(() {
-                                current = pos;
-                                _focusedIndex = pos;
-                              });
-                            },
-                            itemSize: 96,
-                            itemBuilder: _buildListItem,
-                            itemCount: 2,
-                            //reverse: true,
-                            //curve: Curves.bounceIn,
-                          ),
-                        ),
-                      ),
-                    ],
-                  )
-                :
+                            Positioned(
+                              //alignment: Alignment.bottomCenter,
+                              bottom: 10,
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.fromLTRB(20, 20, 20, 10),
+                                child: Container(
+                                  height: 90,
+                                  width: MediaQuery.of(context).size.width,
+                                  child: ScrollSnapList(
+                                    listController: _controller,
+                                    onItemFocus: (pos) {
 
-                /// Widget to show circular loading animation while image is being processed
-                Center(
-                    child: SizedBox(
-                      height: 480,
-                      width: MediaQuery.of(context).size.width * 0.95,
-                      child: const Center(child: CircularProgressIndicator()),
-                    ),
-                  ),
-          )
-        ],
-      ),
-    );
+                                      setState(() {
+                                        _focusedIndex = pos;
+                                      });
+                                      //controller.changeState(_focusedIndex - 1);
+                                      print('Index: $_focusedIndex');
+                                      //controller.changeState(pos - 1);
+                                    },
+                                    itemSize: 96,
+                                    itemBuilder: _buildListItem,
+                                    itemCount: assets.length,
+                                    //reverse: true,
+                                    curve: Curves.ease,
+                                  ),
+                                ),
+                              ),
+                            ),
+
+                            Positioned(
+                              bottom: 130,
+                              child: InkWell(
+                                onTap: () {
+                                  if(_focusedIndex<=27) {
+                                    controller.changeState(_focusedIndex,true);
+                                  }else{
+                                    controller.changeState(_focusedIndex,false);
+                                  }
+                                },
+                                child: Container(
+                                  decoration: const BoxDecoration(
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topRight,
+                                        end: Alignment.bottomLeft,
+                                        colors: [
+                                          Color(0xFF611E8E),
+                                          Color(0xFFF12FCA),
+                                        ],
+                                      ),
+                                    borderRadius: BorderRadius.all(Radius.circular(10))
+
+                                  ),
+                                  child: const Padding(
+                                    padding: EdgeInsets.all(8.0),
+                                    child: GlowText(
+                                      'APPLY',
+                                      style: TextStyle(fontSize: 20, color: Colors.white),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        )),
+                    controller.imageProcessing.value?Container(
+                      width: double.infinity,
+                      height: double.infinity,
+                      color: Colors.black.withOpacity(0.6),
+                      child: Image.asset('assets/loading_2.png'),
+                    ):Container(),
+
+
+
+                  ],
+                )
+              ])
+            ),
+        );});
   }
 }
